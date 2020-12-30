@@ -43,7 +43,7 @@ Array<const char*> GPUDeviceVulkan::InstanceLayers;
 
 bool SupportsDebugUtilsExt = false;
 #if VULKAN_USE_DEBUG_LAYER
-#if VULKAN_SUPPORTS_DEBUG_UTILS
+#if VK_EXT_debug_utils
 VkDebugUtilsMessengerEXT Messenger = VK_NULL_HANDLE;
 #endif
 
@@ -70,18 +70,6 @@ static VKAPI_ATTR VkBool32 VKAPI_PTR DebugReportFunction(VkDebugReportFlagsEXT m
             {
                 // SPIR-V module not valid: MemoryBarrier: Vulkan specification requires Memory Semantics to have one of the following bits set: Acquire, Release, AcquireRelease or SequentiallyConsistent
                 return VK_FALSE;
-            }
-        }
-        if (!StringUtils::Compare(layerPrefix, "DS"))
-        {
-            if (msgCode == 6)
-            {
-                auto* Found = StringUtils::Find(msg, " array layer ");
-                if (Found && Found[13] >= '1' && Found[13] <= '9')
-                {
-                    // Potential bug in the validation layers for slice > 1 on 3d textures
-                    return VK_FALSE;
-                }
             }
         }
     }
@@ -138,7 +126,7 @@ static VKAPI_ATTR VkBool32 VKAPI_PTR DebugReportFunction(VkDebugReportFlagsEXT m
     return VK_FALSE;
 }
 
-#if VULKAN_SUPPORTS_DEBUG_UTILS
+#if VK_EXT_debug_utils
 
 static VKAPI_ATTR VkBool32 VKAPI_PTR DebugUtilsCallback(VkDebugUtilsMessageSeverityFlagBitsEXT msgSeverity, VkDebugUtilsMessageTypeFlagsEXT msgType, const VkDebugUtilsMessengerCallbackDataEXT* callbackData, void* userData)
 {
@@ -242,7 +230,7 @@ static VKAPI_ATTR VkBool32 VKAPI_PTR DebugUtilsCallback(VkDebugUtilsMessageSever
 
 void SetupDebugLayerCallback()
 {
-#if VULKAN_SUPPORTS_DEBUG_UTILS
+#if VK_EXT_debug_utils
     if (SupportsDebugUtilsExt)
     {
         if (vkCreateDebugUtilsMessengerEXT)
@@ -324,7 +312,7 @@ void SetupDebugLayerCallback()
 
 void RemoveDebugLayerCallback()
 {
-#if VULKAN_SUPPORTS_DEBUG_UTILS
+#if VK_EXT_debug_utils
     if (Messenger != VK_NULL_HANDLE)
     {
         if (vkDestroyDebugUtilsMessengerEXT)
@@ -1092,7 +1080,7 @@ GPUDeviceVulkan::GPUDeviceVulkan(ShaderProfile shaderProfile, GPUAdapterVulkan* 
     , PresentQueue(nullptr)
     , Allocator(VK_NULL_HANDLE)
     , PipelineCache(VK_NULL_HANDLE)
-#if VULKAN_SUPPORTS_VALIDATION_CACHE
+#if VK_EXT_validation_cache
     , ValidationCache(VK_NULL_HANDLE)
 #endif
     , UniformBufferUploader(nullptr)
@@ -1438,7 +1426,7 @@ PixelFormat GPUDeviceVulkan::GetClosestSupportedPixelFormat(PixelFormat format, 
     return format;
 }
 
-#if VULKAN_SUPPORTS_VALIDATION_CACHE
+#if VK_EXT_validation_cache
 
 void GetValidationCachePath(String& path)
 {
@@ -1634,7 +1622,7 @@ bool GPUDeviceVulkan::Init()
 
         if ((curProps.queueFlags & VK_QUEUE_TRANSFER_BIT) == VK_QUEUE_TRANSFER_BIT)
         {
-            // Prefer a non-gfx transfer queue
+            // Favor a non-gfx transfer queue
             if (transferQueueFamilyIndex == -1 && (curProps.queueFlags & VK_QUEUE_GRAPHICS_BIT) != VK_QUEUE_GRAPHICS_BIT && (curProps.queueFlags & VK_QUEUE_COMPUTE_BIT) != VK_QUEUE_COMPUTE_BIT)
             {
                 transferQueueFamilyIndex = familyIndex;
@@ -1872,7 +1860,7 @@ bool GPUDeviceVulkan::Init()
     DescriptorPoolsManager = New<DescriptorPoolsManagerVulkan>(this);
     MainContext = New<GPUContextVulkan>(this, GraphicsQueue);
     // TODO: create and load PipelineCache
-#if VULKAN_SUPPORTS_VALIDATION_CACHE
+#if VK_EXT_validation_cache
     if (OptionalDeviceExtensions.HasEXTValidationCache && vkCreateValidationCacheEXT && vkDestroyValidationCacheEXT)
     {
         LoadValidationCache();
@@ -1934,7 +1922,7 @@ void GPUDeviceVulkan::Dispose()
         vkDestroyPipelineCache(Device, PipelineCache, nullptr);
         PipelineCache = VK_NULL_HANDLE;
     }
-#if VULKAN_SUPPORTS_VALIDATION_CACHE
+#if VK_EXT_validation_cache
     if (ValidationCache != VK_NULL_HANDLE)
     {
         if (SaveValidationCache())
@@ -2084,10 +2072,10 @@ bool FenceManagerVulkan::WaitForFence(FenceVulkan* fence, uint64 timeInNanosecon
     if (result == VK_SUCCESS)
     {
         fence->_signaled = true;
-        return true;
+        return false;
     }
 
-    return false;
+    return true;
 }
 
 void FenceManagerVulkan::ResetFence(FenceVulkan* fence)

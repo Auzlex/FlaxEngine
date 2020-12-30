@@ -21,6 +21,7 @@ public class Audio : EngineModule
         var depsRoot = options.DepsFolder;
 
         bool useNone = true;
+        bool useSteamAudio = true;
         bool useOpenAL = false;
         bool useXAudio2 = false;
 
@@ -28,23 +29,27 @@ public class Audio : EngineModule
         {
         case TargetPlatform.Windows:
             useNone = true;
-            useOpenAL = true;
+            //useSteamAudio = true;
+            //useOpenAL = true;
             //useXAudio2 = true;
             break;
         case TargetPlatform.XboxOne:
         case TargetPlatform.UWP:
         case TargetPlatform.XboxScarlett:
-            useXAudio2 = true;
+            //useXAudio2 = true;
             break;
         case TargetPlatform.Linux:
-            useOpenAL = true;
+            //useSteamAudio = true;
+            //useOpenAL = true;
             break;
         case TargetPlatform.PS4:
-            options.SourcePaths.Add(Path.Combine(Globals.EngineRoot, "Source", "Platforms", "PS4", "Engine", "Audio"));
-            options.CompileEnv.PreprocessorDefinitions.Add("AUDIO_API_PS4");
+            //options.SourcePaths.Add(Path.Combine(Globals.EngineRoot, "Source", "Platforms", "PS4", "Engine", "Audio"));
+            //options.CompileEnv.PreprocessorDefinitions.Add("AUDIO_API_PS4");
             break;
         case TargetPlatform.Android:
-            useOpenAL = true;
+            //useSteamAudio = true;
+            //useOpenAL = true;
+
             break;
         default: throw new InvalidPlatformException(options.Platform.Target);
         }
@@ -53,6 +58,14 @@ public class Audio : EngineModule
         {
             options.SourcePaths.Add(Path.Combine(FolderPath, "None"));
             options.CompileEnv.PreprocessorDefinitions.Add("AUDIO_API_NONE");
+        }
+
+        if (useSteamAudio)
+        {
+            options.SourcePaths.Add(Path.Combine(FolderPath, "None"));
+            options.CompileEnv.PreprocessorDefinitions.Add("AUDIO_API_STEAMAUDIO");
+
+            // steam audio is aleady cross platform
         }
 
         if (useOpenAL)

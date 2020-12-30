@@ -17,8 +17,10 @@
 #include "None/AudioBackendNone.h"
 #endif
 
-#include "SteamAudio/include/phonon.h"
-
+#if AUDIO_API_STEAMAUDIO
+// include steam audio back end
+#include "SteamAudio/AudioBackendSteamAudio.h"
+#endif
 
 /// 
 /// 
@@ -215,6 +217,13 @@ bool AudioService::Init()
     if (mute)
     {
         LOG(Warning, "Cannot use mute audio. Null Audio Backend not available on this platform.");
+    }
+    #endif
+
+    #if AUDIO_API_STEAMAUDIO
+    if (!backend)
+    {
+        backend = New <AudioBackendSteamAudio>();
     }
     #endif
 

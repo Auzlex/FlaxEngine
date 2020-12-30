@@ -12,18 +12,29 @@
 #include "Engine/Engine/CommandLine.h"
 #include "Engine/Core/Log.h"
 #include "Engine/Engine/EngineService.h"
+
 #if AUDIO_API_NONE
 #include "None/AudioBackendNone.h"
 #endif
-#if AUDIO_API_PS4
-#include "Platforms/PS4/Engine/Audio/AudioBackendPS4.h"
-#endif
-#if AUDIO_API_OPENAL
-#include "OpenAL/AudioBackendOAL.h"
-#endif
-#if AUDIO_API_XAUDIO2
-#include "XAudio2/AudioBackendXAudio2.h"
-#endif
+
+#include "SteamAudio/include/phonon.h"
+
+
+/// 
+/// 
+// Disable other audio API as we are using steam
+// In the future this will need to be looked at if we are going to be porting the game to console. Which atm we are not
+/// 
+/// 
+//#if AUDIO_API_PS4
+//#include "Platforms/PS4/Engine/Audio/AudioBackendPS4.h"
+//#endif
+//#if AUDIO_API_OPENAL
+//#include "OpenAL/AudioBackendOAL.h"
+//#endif
+//#if AUDIO_API_XAUDIO2
+//#include "XAudio2/AudioBackendXAudio2.h"
+//#endif
 
 const Char* ToString(AudioFormat value)
 {
@@ -166,41 +177,47 @@ bool AudioService::Init()
 
     // Pick a backend to use
     AudioBackend* backend = nullptr;
-#if AUDIO_API_NONE
+
+    #if AUDIO_API_NONE
     if (mute)
     {
         backend = New<AudioBackendNone>();
     }
-#endif
-#if AUDIO_API_PS4
-    if (!backend)
-    {
-        backend = New<AudioBackendPS4>();
-    }
-#endif
-#if AUDIO_API_OPENAL
-    if (!backend)
-    {
-        backend = New<AudioBackendOAL>();
-    }
-#endif
-#if AUDIO_API_XAUDIO2
-	if (!backend)
-	{
-		backend = New<AudioBackendXAudio2>();
-	}
-#endif
-#if AUDIO_API_NONE
+    #endif
+
+// Disable other audio API as we are using steam
+// In the future this will need to be looked at if we are going to be porting the game to console. Which atm we are not
+//#if AUDIO_API_PS4
+//    if (!backend)
+//    {
+//        backend = New<AudioBackendPS4>();
+//    }
+//#endif
+//#if AUDIO_API_OPENAL
+//    if (!backend)
+//    {
+//        backend = New<AudioBackendOAL>();
+//    }
+//#endif
+//#if AUDIO_API_XAUDIO2
+//	if (!backend)
+//	{
+//		backend = New<AudioBackendXAudio2>();
+//	}
+//#endif
+
+    #if AUDIO_API_NONE
     if (!backend)
     {
         backend = New<AudioBackendNone>();
     }
-#else
+    #else
     if (mute)
     {
         LOG(Warning, "Cannot use mute audio. Null Audio Backend not available on this platform.");
     }
-#endif
+    #endif
+
     if (backend == nullptr)
     {
         LOG(Error, "Failed to create audio backend.");

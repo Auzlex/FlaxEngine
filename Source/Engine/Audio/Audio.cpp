@@ -208,6 +208,13 @@ bool AudioService::Init()
 //	}
 //#endif
 
+    #if AUDIO_API_STEAMAUDIO
+    if (!backend)
+    {
+        backend = New <AudioBackendSteamAudio>();
+    }
+    #endif
+
     #if AUDIO_API_NONE
     if (!backend)
     {
@@ -220,12 +227,7 @@ bool AudioService::Init()
     }
     #endif
 
-    #if AUDIO_API_STEAMAUDIO
-    if (!backend)
-    {
-        backend = New <AudioBackendSteamAudio>();
-    }
-    #endif
+    
 
     if (backend == nullptr)
     {
